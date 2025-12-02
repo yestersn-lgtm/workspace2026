@@ -3,6 +3,7 @@ import requests
 url = 'https://www.eastmoney.com/'
 
 response = requests.get(url)
+# 'utf-8'  # gbk
 response.encoding = 'utf-8'
 
 print(f'Status Code: {response.status_code}')
