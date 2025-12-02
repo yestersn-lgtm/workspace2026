@@ -69,6 +69,71 @@ deactivate
 rm -rf .venv
 ```
 
+你遇到的错误是因为 **PowerShell 的执行策略（Execution Policy）限制了脚本的运行**。Windows 默认出于安全考虑，禁止运行本地脚本（包括虚拟环境的 `Activate.ps1`）。
+
+---
+
+### 🔒 错误原因
+PowerShell 的 **执行策略**（Execution Policy）设置为 `Restricted`（默认值），这会阻止所有脚本运行，包括你本地创建的 `.venv\Scripts\Activate.ps1`。
+
+---
+
+### ✅ 解决方法
+#### 步骤 1：以**管理员身份**打开 PowerShell
+（必须管理员权限才能修改系统策略）
+
+#### 步骤 2：临时放宽执行策略
+运行以下命令（选择一种）：
+
+##### 选项 A：仅对当前用户允许本地脚本（推荐）
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+- **效果**：允许运行本地脚本（如 `Activate.ps1`），但要求从网络下载的脚本必须有可信发布者签名。
+- **安全性**：较高，且无需管理员权限（但首次设置时可能需要）。
+
+##### 选项 B：完全允许脚本运行（不推荐）
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+```
+- **风险**：允许运行所有脚本（包括潜在恶意脚本），仅建议在完全可信的环境中使用。
+
+---
+
+### 📌 验证执行策略
+运行以下命令检查当前策略：
+```powershell
+Get-ExecutionPolicy -List
+```
+正常应看到 `CurrentUser` 的策略变为 `RemoteSigned`。
+
+---
+
+### ▶️ 激活虚拟环境
+执行策略修改后，重新运行激活命令：
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+成功激活后，命令行前缀会显示 `(.venv)`。
+
+---
+
+### ⚠️ 重要提醒
+1. **不要全局禁用执行策略**（如用 `-Scope LocalMachine`），这会降低系统安全性。
+2. 如果公司电脑有组策略限制，可能需要联系 IT 管理员。
+3. 替代方案：直接使用 **命令提示符**（CMD）激活（无执行策略限制）：
+   ```cmd
+   .venv\Scripts\activate.bat
+   ```
+
+---
+
+### 💡 原理说明
+- `RemoteSigned` 策略下，**本地创建的脚本**（如你自己生成的 `venv`）可直接运行。
+- 从网络下载的脚本需解除“被阻止”状态（右键文件 → 属性 → 勾选“解除锁定”）。
+
+> 完成后，你的虚拟环境即可正常使用。如果仍有问题，请提供 `Get-ExecutionPolicy -List` 的输出。
+
 ### 2. 2025革命性工具 `uv` (Astrals官方出品)
 ```bash
 # 安装 (比pip快100倍)
